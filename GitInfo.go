@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -66,7 +67,6 @@ func getRepos(userName string, userData *UserData) error {
 	for i, repo := range repos {
 		repoMap := make(map[string]interface{})
 		repoMap["name"] = repo.Name
-		repoMap["description"] = repo.Description
 		userData.Repos[i] = repoMap
 	}
 
@@ -130,12 +130,43 @@ func GetRepoData(username string, repoName string) (*RepoData, error) {
 	return &repoData, nil
 }
 
-func printData(data interface{}) (string, error) {
-	output, err := json.MarshalIndent(data, "", "\t")
-	if err != nil {
-		return "", err
+func printUserData(userData *UserData) {
+	fmt.Printf(`
+Username:    %s
+Name:        %s
+Bio:         %s
+Location:    %s
+AvatarUrl:   %s
+GitHubUrl:   %s
+NumRepos:    %d
+Followers:   %d
+Repos:
+`, userData.UserName, userData.Name, userData.Bio, userData.Location, userData.AvatarUrl,
+		userData.GitHubUrl, userData.NumRepos, userData.Followers)
+
+	for _, repo := range userData.Repos {
+		fmt.Printf("\t- %s\n", repo["name"])
 	}
-	return string(output), err
+}
+
+func formatLanguages(languages map[string]int) string {
+	languageStrs := make([]string, 0, len(languages))
+	for language, count := range languages {
+		languageStrs = append(languageStrs, fmt.Sprintf("%s: %d", language, count))
+	}
+	return strings.Join(languageStrs, ", ")
+}
+
+func printRepoData(repoData *RepoData) {
+	fmt.Printf(`
+Name:            %s
+Description:     %s
+RepositoryUrl:   %s
+License:         %s
+ForksCount:      %d
+Languages:       %s
+`, repoData.Name, repoData.Description, repoData.RepositoryUrl, repoData.License["name"],
+		repoData.ForksCount, formatLanguages(repoData.Languages))
 }
 
 func main() {
@@ -159,12 +190,7 @@ func main() {
 			return
 		}
 
-		dataOutput, err := printData(&userData)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		fmt.Println(dataOutput)
+		printUserData(userData)
 
 	case "repo":
 		if *username == "" {
@@ -183,11 +209,6 @@ func main() {
 			return
 		}
 
-		dataOutput, err := printData(&repoData)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		fmt.Println(dataOutput)
+		printRepoData(repoData)
 	}
 }
