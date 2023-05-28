@@ -1,6 +1,11 @@
 # GitInfo
 This repository is under heavy development! This is just the beginning of a simple CLI-Tool that collects data from GitHub users and repositories and prints it to the terminal.
 
+## Future features
+- General:      Optimize data retrieval
+- UserData:     show GitHub avatar in command line
+- General:      show (max. 10) most used languages in percentage 
+
 ## Examples
 ### Getting user data
 ```
