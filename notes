@@ -1,0 +1,23 @@
+// get userData of username
+userData, err := GetUserData(*username)
+if err != nil {
+	fmt.Println(err)
+}
+
+dataOutput, err := printData(&userData)
+if err != nil {
+	fmt.Println(err)
+}
+fmt.Println(dataOutput)
+
+// get repoData of repoName
+repoData, err := GetRepoData("GoScan")
+if err != nil {
+	fmt.Println(err)
+}
+
+dataOutput, err = printData(&repoData)
+if err != nil {
+	fmt.Println(err)
+}
+fmt.Println(dataOutput)
