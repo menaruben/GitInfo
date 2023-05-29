@@ -134,9 +134,9 @@ func GetRepoData(username string, repoName string) (*RepoData, error) {
 	return &repoData, nil
 }
 
-func printUserData(userData *UserData) {
+func printUserData(userData *UserData, avatarRatio float64) {
 	avatarFilename := userData.UserName + ".jpg"
-	printAvatar(userData.AvatarUrl, avatarFilename)
+	printAvatar(userData.AvatarUrl, avatarFilename, avatarRatio)
 	fmt.Printf(`
 Username:    %s
 Name:        %s
@@ -174,7 +174,7 @@ Languages:       %s
 		repoData.ForksCount, formatLanguages(repoData.Languages))
 }
 
-func printAvatar(url string, filename string) error {
+func printAvatar(url string, filename string, avatarRatio float64) error {
 	err := downloadImage(url, filename)
 	if err != nil {
 		fmt.Println("Failed to download the image:", err)
@@ -183,6 +183,7 @@ func printAvatar(url string, filename string) error {
 
 	// Create convert options
 	convertOptions := convert.DefaultOptions
+	convertOptions.Ratio = avatarRatio
 
 	// Create the image converter
 	converter := convert.NewImageConverter()
@@ -233,6 +234,7 @@ func main() {
 	info := flag.String("info", "", "specifies the type of info")
 	username := flag.String("username", "", "specifies github user")
 	repoName := flag.String("repo", "", "specifies github repository name")
+	avatarRatio := flag.Float64("avatarRatio", 0.25, "specifies the ratio of the ascii avatar size")
 	client = &http.Client{Timeout: 10 * time.Second}
 
 	flag.Parse()
@@ -250,7 +252,7 @@ func main() {
 			return
 		}
 
-		printUserData(userData)
+		printUserData(userData, *avatarRatio)
 
 	case "repo":
 		if *username == "" {
