@@ -4,10 +4,14 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 	"time"
+
+	"github.com/qeesung/image2ascii/convert"
 )
 
 var client *http.Client
@@ -131,17 +135,18 @@ func GetRepoData(username string, repoName string) (*RepoData, error) {
 }
 
 func printUserData(userData *UserData) {
+	avatarFilename := userData.UserName + ".jpg"
+	printAvatar(userData.AvatarUrl, avatarFilename)
 	fmt.Printf(`
 Username:    %s
 Name:        %s
 Bio:         %s
 Location:    %s
-AvatarUrl:   %s
 GitHubUrl:   %s
 NumRepos:    %d
 Followers:   %d
 Repos:
-`, userData.UserName, userData.Name, userData.Bio, userData.Location, userData.AvatarUrl,
+`, userData.UserName, userData.Name, userData.Bio, userData.Location,
 		userData.GitHubUrl, userData.NumRepos, userData.Followers)
 
 	for _, repo := range userData.Repos {
@@ -167,6 +172,61 @@ ForksCount:      %d
 Languages:       %s
 `, repoData.Name, repoData.Description, repoData.RepositoryUrl, repoData.License["name"],
 		repoData.ForksCount, formatLanguages(repoData.Languages))
+}
+
+func printAvatar(url string, filename string) error {
+	err := downloadImage(url, filename)
+	if err != nil {
+		fmt.Println("Failed to download the image:", err)
+		return err
+	}
+
+	// Create convert options
+	convertOptions := convert.DefaultOptions
+
+	// Create the image converter
+	converter := convert.NewImageConverter()
+	fmt.Print(converter.ImageFile2ASCIIString(filename, &convertOptions))
+
+	err = removeImage(filename)
+	if err != nil {
+		fmt.Println("Failed to remove the image:", err)
+		return err
+	}
+
+	return nil
+}
+
+// DownloadImage downloads the image from the given URL and saves it as the specified filename.
+func downloadImage(url, filename string) error {
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	out, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// RemoveImage removes the specified image file.
+func removeImage(filename string) error {
+	err := os.Remove(filename)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func main() {
