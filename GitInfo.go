@@ -239,38 +239,46 @@ func main() {
 
 	flag.Parse()
 
-	switch *info {
-	case "user":
-		if *username == "" {
-			fmt.Println("(!) Please provide a username")
-			return
-		}
+	infoFuncs := map[string]func(){
+		"user": func() {
+			if *username == "" {
+				fmt.Println("(!) Please provide a username")
+				return
+			}
 
-		userData, err := GetUserData(*username)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
+			userData, err := GetUserData(*username)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
 
-		printUserData(userData, *avatarRatio)
+			printUserData(userData, *avatarRatio)
+		},
 
-	case "repo":
-		if *username == "" {
-			fmt.Println("(!) Please provide a username")
-			return
-		}
+		"repo": func() {
+			if *username == "" {
+				fmt.Println("(!) Please provide a username")
+				return
+			}
 
-		if *repoName == "" {
-			fmt.Println("(!) Please provide a repository name")
-			return
-		}
+			if *repoName == "" {
+				fmt.Println("(!) Please provide a repository name")
+				return
+			}
 
-		repoData, err := GetRepoData(*username, *repoName)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
+			repoData, err := GetRepoData(*username, *repoName)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
 
-		printRepoData(repoData)
+			printRepoData(repoData)
+		},
+	}
+
+	if infoFunc, ok := infoFuncs[*info]; ok {
+		infoFunc()
+	} else {
+		fmt.Printf("(!) %s info not found; Please provide a valid info parameter\n", *info)
 	}
 }
